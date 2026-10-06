@@ -1,79 +1,63 @@
 # Navinator
 
-Navinator answers a question about one Python backend by walking only real call and dependency edges. Each stop shows the function source and the file and line of the hop that got you there.
+### Navigate Any Codebase. Understand How It Works.
 
-The preloaded repo is [full-stack-fastapi-template](https://github.com/fastapi/full-stack-fastapi-template) at `1762adac607a1b29cfc4da129557780beea71616` (`demo-repo/PIN`). `demo-repo/backend/app/api/deps.py` parenthesizes one `except` clause so Python 3.12 can parse the module. Line numbers are unchanged.
+[![Python](https://img.shields.io/badge/Python-3.11+-3776ab?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18+-61dafb?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Anthropic](https://img.shields.io/badge/Anthropic-Claude-191919?logo=anthropic&logoColor=white)](https://www.anthropic.com/)
+[![xAI](https://img.shields.io/badge/xAI-Grok-000000?logo=x&logoColor=white)](https://x.ai/)
+[![NetworkX](https://img.shields.io/badge/NetworkX-Graph%20Analysis-e76f51)](https://networkx.org/)
 
-## Questions
+<p align="center">
+  <img src="readme_Images/navinator.png" width="90%" alt="Navinator">
+</p>
 
-- How does login work, and where does the request end up?
-- How does an authenticated request load the current user?
-- How is a new user created?
+## Overview
 
-With no API key, `/ask` plays the saved tour for that question. Set `ANTHROPIC_API_KEY` and leave `DEMO_MODE` unset to use the live agent. If the agent fails or runs long, the server returns the saved tour.
+Navinator is an AI-powered codebase navigator that helps developers understand unfamiliar Python backends.
 
-## Run
+Instead of giving you another AI-generated explanation, Navinator **walks through the actual code**.
 
-From the repo root, with Python 3.11+ (ideally 3.12) and Node 22:
+Ask a question like:
 
-```bash
-python3 -m pip install -r backend/requirements.txt
-cd frontend && npm install && cd ..
-python3 -m uvicorn navinator.server:app --app-dir backend --host 0.0.0.0 --port 8741
-```
+> How does login work, and where does the request end up?
 
-In another shell:
+Navinator finds the relevant functions, follows real call and dependency relationships, and turns them into a guided tour through the code.
 
-```bash
-cd frontend && npm run dev
-```
+Each stop shows the actual function source, file, and line that led to the next step.
 
-The UI is at `http://127.0.0.1:43123`. The API is at `http://127.0.0.1:8741`. Copy `backend/.env.example` to `backend/.env` if you want a key or `DEMO_MODE=cached`.
+### Project Links
 
-## Your own repo
+- [Demo Website](https://navinator.vercel.app/)
+- [GitHub Repository](https://github.com/AadityaK16/codebase-navigator)
 
-The picker at the top of the panel switches between the demo, the projects in `sample-repos/`, and folders you upload. Click "Upload folder" or drop a folder anywhere on the page. Only its `.py` files are sent, and the graph is rebuilt from them. Uploads are saved in `backend/data/uploads/` and stay in the picker; re-uploading a folder with the same name replaces it.
+## The Problem
 
-Saved tours and the time machine cover only the demo. To ask questions about another repo, set `ANTHROPIC_API_KEY` or use private mode. Search, regrouping, and the graph work without a key. The first time a repo opens, the graph settles for a few seconds, then its layout is saved in `backend/data/layouts/`.
+Understanding an unfamiliar codebase is difficult.
 
-## Private mode (local LLM)
+Modern repositories can contain thousands of files, functions, imports, and dependencies. Developers joining a project often have to:
 
-Run the agent on a model on your own machine so no source code leaves it. Any server that speaks the OpenAI chat API with tool calling works: Ollama, LM Studio, llama.cpp server.
+- Search through dozens of files
+- Trace function calls manually
+- Figure out how requests move through the backend
+- Reconstruct relationships between modules
+- Read outdated or incomplete documentation
 
-```bash
-ollama pull llama3.1:8b        # or qwen2.5:7b, which is stronger at tool calls
-LLM_PROVIDER=ollama LOCAL_MODEL=llama3.1:8b python3 -m uvicorn navinator.server:app --app-dir backend --port 8741
-```
+Traditional AI coding assistants can explain individual pieces of code, but they don't always show **how those pieces connect**.
 
-The UI shows a green "Private mode" badge when the model URL is localhost. Tours from the local model go through the same validator as the cloud model, so a weak model can never show a path that does not exist in the graph. If it fails or runs past two minutes, the saved tour plays instead.
+## Our Solution
 
-## Grok narration, voice, and regrouping
+Navinator combines **code parsing, graph analysis, and AI-powered navigation** to create a map of the codebase.
 
-Add `XAI_API_KEY` to `backend/.env` (optional: `XAI_MODEL`, default `grok-4`; `XAI_VOICE`, default `ara`). With a key:
-
-- Grok rewrites each tour stop's narration from the actual code, then reads it aloud. Pick the voice in the tour bar.
-- The Regroup tab asks Grok to reorganise the graph ("group by responsibility", "only the password code"). Every grouping stays in the list, including the original, so you can switch back.
-
-Without a key, tours use the saved narration and the browser voice, and Regroup keeps the code that matches your words. If a Grok call fails, the same fallbacks kick in and the UI says why.
-
-Tour controls: Back, Pause, Next, Exit tour, or ← → Space Esc. Up (or Esc) walks out one level: function, file, folder or group, everything. Home jumps to the full view.
-
-## Time machine
-
-`backend/data/history.json` replays every commit that touched the backend (2019 to the pin) through the same parser. The slider shows when each function, class, and file arrived. To rebuild it:
-
-```bash
-git clone https://github.com/fastapi/full-stack-fastapi-template /tmp/fft
-cd backend && python3 -m navinator.history /tmp/fft $(head -1 ../demo-repo/PIN) data/history.json
-```
-
-## Regenerate the graph
-
-```bash
-cd backend
-python3 -m navinator.parser ../demo-repo/backend data/graph.json
-python3 -m pytest
-```
-
-`backend/data/layout.json` is a frozen 3D layout made by `python3 -m navinator.layout3d` (run from `backend`): folders spread around a large sphere, files on a sphere inside their folder, symbols orbiting their file. Click a labelled file node, a folder chip, or "Open its file group" to fly into a group; Esc goes back out. The UI loads it on startup so the graph does not reshuffle. After a parser change, delete `layout.json` once and reload; the view will settle and save a new layout.
-
+```text
+Question
+   ↓
+Relevant Code
+   ↓
+Graph Search
+   ↓
+Validated Call Path
+   ↓
+Guided Code Tour
