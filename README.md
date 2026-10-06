@@ -10,9 +10,6 @@
 [![xAI](https://img.shields.io/badge/xAI-Grok-000000?logo=x&logoColor=white)](https://x.ai/)
 [![NetworkX](https://img.shields.io/badge/NetworkX-Graph%20Analysis-e76f51)](https://networkx.org/)
 
-<p align="center">
-  <img src="readme_Images/navinator.png" width="90%" alt="Navinator">
-</p>
 
 ## Overview
 
@@ -27,11 +24,6 @@ Ask a question like:
 Navinator finds the relevant functions, follows real call and dependency relationships, and turns them into a guided tour through the code.
 
 Each stop shows the actual function source, file, and line that led to the next step.
-
-### Project Links
-
-- [Demo Website](https://navinator.vercel.app/)
-- [GitHub Repository](https://github.com/AadityaK16/codebase-navigator)
 
 ## The Problem
 
